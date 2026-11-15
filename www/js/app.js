@@ -340,6 +340,20 @@
 
   /* ---------- start ---------- */
   function init() {
+    var welcome = $('#purvaWelcome');
+    if (welcome) {
+      var startButton = $('#purvaStart');
+      if (store.get('tom-ai.purvaWelcomeSeen.v1', '0') !== '1') {
+        welcome.hidden = false;
+        startButton.addEventListener('click', function () {
+          store.set('tom-ai.purvaWelcomeSeen.v1', '1');
+          welcome.hidden = true;
+        });
+      } else {
+        welcome.hidden = true;
+      }
+    }
+
     var saved = store.get(cfg.keys.lang, cfg.defaultLang);
     lang = cfg.languages.some(function (l) { return l.code === saved; }) ? saved : cfg.defaultLang;
 
