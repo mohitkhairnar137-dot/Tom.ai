@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.tomai.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.tomai.app'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '0.1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    sourceSets {
+        main {
+            // The whole web app lives in ../../www and is packaged as the app's assets,
+            // so index.html is loaded from file:///android_asset/index.html
+            assets.srcDirs = ['src/main/assets', '../../www']
+        }
+    }
+}
