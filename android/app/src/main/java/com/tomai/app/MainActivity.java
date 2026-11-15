@@ -3,6 +3,7 @@ package com.tomai.app;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -14,6 +15,8 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -33,11 +36,13 @@ import java.util.Locale;
 public class MainActivity extends Activity {
 
     private static final int REQ_AUDIO = 7;
+    private static final int REQ_FILE = 8;
 
     private WebView web;
     private SpeechRecognizer recognizer;
     private TextToSpeech tts;
     private String pendingLang;
+    private ValueCallback<Uri[]> fileCallback;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -71,6 +76,32 @@ public class MainActivity extends Activity {
             }
         });
 
+        // Lets <input type="file"> open the phone's photo picker (used by Memories > My photos).
+        // The system picker needs no storage permission.
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
+                                             FileChooserParams params) {
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                Intent intent;
+                try {
+                    intent = params.createIntent();
+                } catch (Exception e) {
+                    intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("image/*");
+                }
+                try {
+                    startActivityForResult(intent, REQ_FILE);
+                } catch (ActivityNotFoundException e) {
+                    fileCallback = null;
+                    callback.onReceiveValue(null);
+                }
+                return true;
+            }
+        });
+
         tts = new TextToSpeech(this, null);
         web.loadUrl("file:///android_asset/index.html");
     }
@@ -82,6 +113,14 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_FILE || fileCallback == null) return;
+        fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));
+        fileCallback = null;
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         if (recognizer != null) recognizer.cancel();
@@ -90,6 +129,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (fileCallback != null) fileCallback.onReceiveValue(null);
         if (recognizer != null) recognizer.destroy();
         if (tts != null) tts.shutdown();
         if (web != null) web.destroy();

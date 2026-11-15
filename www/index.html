@@ -98,13 +98,65 @@
           <h1 class="title" data-i18n="mem.title"></h1>
           <p class="sub" data-i18n="mem.sub"></p>
         </div>
-        <button class="btn-primary" id="memAdd" type="button">
+        <button class="btn-primary" id="memAdd" type="button" hidden>
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           <span data-i18n="mem.add"></span>
         </button>
+        <button class="btn-primary" id="photoAdd" type="button" hidden>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <span data-i18n="gal.add"></span>
+        </button>
       </div>
 
-      <div class="photos" id="photos"></div>
+      <div class="mem-tabs" id="memTabs" role="tablist" data-i18n-aria="gal.tabs">
+        <button type="button" role="tab" id="tabTom" data-tab="tom" aria-selected="true" aria-controls="panelTom">
+          <svg class="icon" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="21" rx="7.5" ry="6"/><ellipse cx="6.5" cy="14" rx="3" ry="3.8"/><ellipse cx="12" cy="8.5" rx="3" ry="4"/><ellipse cx="20" cy="8.5" rx="3" ry="4"/><ellipse cx="25.5" cy="14" rx="3" ry="3.8"/></svg>
+          <span data-i18n="gal.tabTom"></span>
+        </button>
+        <button type="button" role="tab" id="tabMine" data-tab="mine" aria-selected="false" aria-controls="panelMine" tabindex="-1">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-8.6-9C2.3 7.6 4.3 5 7 5c1.8 0 3.2.9 5 3 1.8-2.1 3.2-3 5-3 2.7 0 4.7 2.6 3.6 6-1.6 4.6-8.6 9-8.6 9z"/></svg>
+          <span data-i18n="gal.tabMine"></span>
+        </button>
+        <button type="button" role="tab" id="tabStories" data-tab="stories" aria-selected="false" aria-controls="panelStories" tabindex="-1">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h10.5A3.5 3.5 0 0 1 19 8v11.5H8.5A3.5 3.5 0 0 1 5 16z"/><path d="M9 9h6M9 12.5h6"/></svg>
+          <span data-i18n="gal.tabStories"></span>
+        </button>
+      </div>
+
+      <!-- Tom's built-in photos -->
+      <div class="tab-panel" id="panelTom" role="tabpanel" aria-labelledby="tabTom" data-panel="tom">
+        <p class="gal-note" data-i18n="gal.tomNote"></p>
+        <div class="photo-grid" id="tomGrid"></div>
+        <p class="empty" id="tomEmpty" data-i18n="mem.photos" hidden></p>
+      </div>
+
+      <!-- Purva's own photos (IndexedDB) -->
+      <div class="tab-panel" id="panelMine" role="tabpanel" aria-labelledby="tabMine" data-panel="mine" hidden>
+        <p class="gal-note" id="mineNote" data-i18n="gal.mineNote"></p>
+
+        <div class="sheet" id="photoSheet" hidden>
+          <form id="photoForm" autocomplete="off">
+            <h2 data-i18n="gal.new"></h2>
+            <p class="gal-progress" id="photoProgress" hidden></p>
+            <img class="photo-preview" id="photoPreview" alt="">
+            <label for="photoTitle" data-i18n="gal.f.title"></label>
+            <input id="photoTitle" type="text" maxlength="80">
+            <label for="photoDesc" data-i18n="gal.f.desc"></label>
+            <textarea id="photoDesc" rows="3" maxlength="1000"></textarea>
+            <div class="sheet-actions">
+              <button class="btn-ghost" id="photoCancel" type="button" data-i18n="mem.cancel"></button>
+              <button class="btn-primary" id="photoSave" type="submit" data-i18n="mem.save"></button>
+            </div>
+          </form>
+        </div>
+
+        <div class="photo-grid" id="mineGrid"></div>
+        <p class="empty" id="mineEmpty" data-i18n="gal.mineEmpty" hidden></p>
+        <input type="file" id="photoFile" accept="image/*" multiple hidden>
+      </div>
+
+      <!-- Written stories (unchanged feature) -->
+      <div class="tab-panel" id="panelStories" role="tabpanel" aria-labelledby="tabStories" data-panel="stories" hidden>
 
       <div class="sheet" id="memSheet" hidden>
         <form id="memForm" autocomplete="off">
@@ -124,6 +176,7 @@
 
       <ul class="mem-list" id="memList"></ul>
       <p class="empty" id="memEmpty" data-i18n="mem.empty"></p>
+      </div>
     </section>
 
   </main>
@@ -143,6 +196,33 @@
     </a>
   </nav>
 
+  <!-- Full-screen photo viewer (used by both galleries) -->
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" hidden>
+    <button class="viewer-close" id="viewerClose" type="button" data-i18n-aria="gal.close">
+      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="viewer-stage" id="viewerStage">
+      <button class="viewer-nav prev" id="viewerPrev" type="button" data-i18n-aria="gal.prev">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <figure class="viewer-fig">
+        <img id="viewerImg" alt="">
+        <figcaption>
+          <b id="viewerTitle"></b>
+          <span class="viewer-date" id="viewerDate"></span>
+          <p id="viewerText"></p>
+        </figcaption>
+      </figure>
+      <button class="viewer-nav next" id="viewerNext" type="button" data-i18n-aria="gal.next">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+    <div class="viewer-foot">
+      <span class="viewer-count" id="viewerCount"></span>
+      <button class="mem-del" id="viewerDel" type="button" hidden></button>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 </div>
 
@@ -150,6 +230,8 @@
 <script src="js/i18n.js"></script>
 <script src="js/dog.js"></script>
 <script src="js/memories.js"></script>
+<script src="js/photodb.js"></script>
+<script src="js/gallery.js"></script>
 <script src="js/brain.js"></script>
 <script src="js/voice.js"></script>
 <script src="js/app.js"></script>

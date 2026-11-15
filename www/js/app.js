@@ -252,23 +252,8 @@
 
   /* ---------- memories ---------- */
   function renderPhotos() {
-    var box = $('#photos');
-    box.textContent = '';
-    if (cfg.realTomPhotos.length) {
-      cfg.realTomPhotos.forEach(function (src) {
-        var img = document.createElement('img');
-        img.src = src;
-        img.alt = 'Tom';
-        img.loading = 'lazy';
-        box.appendChild(img);
-      });
-    } else {
-      var ph = document.createElement('div');
-      ph.className = 'photo-ph';
-      ph.innerHTML = '<svg class="paw" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="21" rx="7.5" ry="6"/><ellipse cx="6.5" cy="14" rx="3" ry="3.8"/><ellipse cx="12" cy="8.5" rx="3" ry="4"/><ellipse cx="20" cy="8.5" rx="3" ry="4"/><ellipse cx="25.5" cy="14" rx="3" ry="3.8"/></svg><span></span>';
-      ph.querySelector('span').textContent = I.t('mem.photos');
-      box.appendChild(ph);
-    }
+    /* Built-in Tom photos and Purva's own photos live in gallery.js. */
+    if (TOM.gallery) TOM.gallery.render();
   }
 
   function renderMemories() {
@@ -384,6 +369,8 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && !$('#memSheet').hidden) closeSheet();
     });
+
+    if (TOM.gallery) TOM.gallery.init({ toast: toast });
 
     window.addEventListener('hashchange', onHash);
     setLang(lang);
