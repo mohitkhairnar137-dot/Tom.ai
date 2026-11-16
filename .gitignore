@@ -4,3 +4,11 @@ local.properties
 *.iml
 .idea/
 captures/
+
+# Backend secrets and local configuration
+.env
+.env.*
+!.env.example
+.dev.vars
+.wrangler/
+node_modules/
